@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSPD — Système Central</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08090d;--bg2:#0e1018;--bg3:#141720;--bg4:#1a1f2e;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);--gold:#c9a227;--gold2:#e8c44a;--gold-dim:rgba(201,162,39,0.1);--blue:#2870b5;--blue2:#4a9de0;--text:#dde1ec;--text2:#7d879e;--text3:#454e63;--danger:#c03a3a;--danger2:#e05555;--success:#27885a;--success2:#3db87c;--warn:#b87520;--warn2:#e09030;--r:4px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-size:14px;min-height:100vh;}
+#cfg-banner{background:rgba(201,162,39,0.08);border-bottom:1px solid rgba(201,162,39,0.25);padding:9px 20px;font-size:12px;color:var(--gold2);display:flex;align-items:center;gap:8px;}
+#cfg-banner.hidden{display:none;}
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.login-box{background:var(--bg2);border:1px solid var(--border2);border-top:3px solid var(--gold);padding:50px 44px;width:380px;text-align:center;}
+.login-emblem{width:70px;height:70px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:#08090d;box-shadow:0 0 40px rgba(201,162,39,0.25);}
+.login-title{font-family:'Rajdhani',sans-serif;font-size:32px;font-weight:700;letter-spacing:5px;}
+.login-sub{font-size:10px;color:var(--text3);letter-spacing:4px;text-transform:uppercase;margin-bottom:32px;margin-top:4px;}
+.login-box input{width:100%;padding:13px 16px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:4px;margin-bottom:12px;outline:none;transition:border-color .2s;}
+.login-box input:focus{border-color:var(--gold);}
+.login-box button{width:100%;padding:13px;background:var(--gold);border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:#08090d;letter-spacing:3px;transition:all .2s;}
+.login-box button:hover{background:var(--gold2);}
+.login-error{color:var(--danger2);font-size:12px;margin-top:8px;min-height:16px;}
+#app{display:none;}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.s-top{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.s-badge{width:36px;height:36px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#08090d;flex-shrink:0;}
+.s-name{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:2px;}
+.s-sub{font-size:9px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;}
+.nav-section{padding:10px 0;}
+.nav-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);padding:6px 20px 3px;font-weight:500;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;color:var(--text2);transition:all .15s;border-left:2px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--bg3);}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:var(--gold-dim);}
+.nav-icon{font-size:13px;width:16px;text-align:center;flex-shrink:0;}
+.s-foot{margin-top:auto;padding:14px 20px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);}
+.main{flex:1;padding:28px 30px;min-height:100vh;}
+.page{display:none;}
+.page.active{display:block;}
+.ph{margin-bottom:22px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.ph-title{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;letter-spacing:3px;}
+.ph-sub{font-size:10px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-top:3px;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+.sc{background:var(--bg2);border:1px solid var(--border);padding:16px;border-top:2px solid var(--border);}
+.sc.cg{border-top-color:var(--gold);}
+.sc.cb{border-top-color:var(--blue2);}
+.sc.cv{border-top-color:var(--success2);}
+.sc.cr{border-top-color:var(--danger2);}
+.sc.co{border-top-color:var(--warn2);}
+.sc-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.sc-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;}
+.sc-note{font-size:11px;color:var(--text3);margin-top:3px;}
+.panel{background:var(--bg2);border:1px solid var(--border);margin-bottom:20px;}
+.panel-head{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.panel-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--bg3);}
+th{padding:8px 13px;text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border);}
+td{padding:10px 13px;border-bottom:1px solid var(--border);color:var(--text2);font-size:13px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg3);color:var(--text);}
+.mono{font-family:'JetBrains Mono',monospace;}
+td.nm{color:var(--text);font-weight:500;}
+.cr-row{cursor:pointer;}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;font-size:10px;font-weight:600;letter-spacing:.5px;border-radius:var(--r);}
+.bg-gold{background:rgba(201,162,39,0.15);color:var(--gold2);border:1px solid rgba(201,162,39,0.3);}
+.bg-blue{background:rgba(40,112,181,0.2);color:var(--blue2);border:1px solid rgba(74,157,224,0.3);}
+.bg-green{background:rgba(39,136,90,0.2);color:var(--success2);border:1px solid rgba(61,184,124,0.3);}
+.bg-red{background:rgba(192,58,58,0.2);color:var(--danger2);border:1px solid rgba(192,58,58,0.3);}
+.bg-gray{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border);}
+.bg-orange{background:rgba(184,117,32,0.2);color:var(--warn2);border:1px solid rgba(184,117,32,0.3);}
+.bg-purple{background:rgba(120,80,200,0.2);color:#b090f0;border:1px solid rgba(120,80,200,0.3);}
+.btn{padding:8px 15px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;border:1px solid;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:#08090d;}
+.btn-gold:hover{background:var(--gold2);}
+.btn-outline{background:transparent;border-color:var(--border2);color:var(--text2);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn-del{background:transparent;border-color:rgba(192,58,58,.3);color:var(--danger2);font-size:11px;padding:3px 9px;}
+.btn-del:hover{background:rgba(192,58,58,.1);}
+.btn-blue{background:var(--blue);border-color:var(--blue);color:#fff;}
+.btn-blue:hover{background:var(--blue2);}
+.btn-red{background:var(--danger);border-color:var(--danger);color:#fff;}
+.btn-red:hover{background:var(--danger2);}
+.search-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:7px 12px;font-size:13px;font-family:'Syne',sans-serif;outline:none;width:210px;transition:border-color .2s;}
+.search-input:focus{border-color:var(--gold);}
+.fi-sm{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:6px 10px;font-size:12px;font-family:'Syne',sans-serif;outline:none;transition:border-color .2s;}
+.fi-sm:focus{border-color:var(--gold);}
+.casier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:14px;}
+.c-card{background:var(--bg3);border:1px solid var(--border);padding:15px;cursor:pointer;transition:all .15s;}
+.c-card:hover{border-color:var(--border2);background:var(--bg4);}
+.c-card.danger-left{border-left:3px solid var(--danger2);}
+.c-avatar{width:42px;height:42px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--text2);flex-shrink:0;}
+.c-head{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
+.c-name{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--text);}
+.c-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.c-tags{display:flex;gap:5px;flex-wrap:wrap;}
+#detail-view{display:none;}
+.back-btn{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text2);font-size:13px;margin-bottom:18px;transition:color .15s;width:fit-content;}
+.back-btn:hover{color:var(--gold);}
+.detail-header{background:var(--bg2);border:1px solid var(--border);border-top:3px solid var(--danger2);padding:22px;display:flex;align-items:flex-start;gap:18px;margin-bottom:18px;flex-wrap:wrap;}
+.detail-avatar{width:60px;height:60px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--text2);flex-shrink:0;}
+.detail-name{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;letter-spacing:2px;}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:4px 16px;margin-top:8px;}
+.dg-row{font-size:12px;display:flex;gap:6px;}
+.dg-lbl{color:var(--text3);min-width:80px;flex-shrink:0;}
+.dg-val{color:var(--text2);}
+.detail-actions{display:flex;flex-direction:column;gap:7px;align-items:flex-end;margin-left:auto;}
+.detail-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);}
+.dtab{padding:9px 16px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;color:var(--text3);border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px;}
+.dtab:hover{color:var(--text2);}
+.dtab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.dtab-content{display:none;}
+.dtab-content.active{display:block;}
+.avis-card{background:var(--bg3);border:1px solid var(--warn2);padding:16px;display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;}
+.avis-badge{width:48px;height:48px;border-radius:50%;background:rgba(184,117,32,0.2);border:2px solid var(--warn2);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--warn2);flex-shrink:0;}
+.avis-name{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--text);}
+.avis-detail{font-size:12px;color:var(--text2);margin-top:4px;}
+.avis-reason{font-size:11px;color:var(--warn2);margin-top:6px;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:500;}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-top:2px solid var(--gold);width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;}
+.modal-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg2);z-index:1;}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:2px;}
+.modal-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:20px;}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+.fg{margin-bottom:13px;}
+.fl{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.fi,.fs{width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:13px;font-family:'Syne',sans-serif;outline:none;transition:border-color .2s;}
+.fi:focus,.fs:focus{border-color:var(--gold);}
+.fs option{background:var(--bg3);}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+textarea.fi{resize:vertical;min-height:72px;}
+.loading{padding:36px;text-align:center;color:var(--text3);font-size:13px;}
+.empty{padding:36px;text-align:center;color:var(--text3);font-size:13px;}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.notif{position:fixed;bottom:22px;right:22px;background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--gold);padding:11px 18px;font-size:13px;color:var(--text);z-index:9999;transform:translateY(16px);opacity:0;transition:all .3s;max-width:300px;}
+.notif.show{transform:translateY(0);opacity:1;}
+.notif.err{border-left-color:var(--danger2);}
+.notif.ok{border-left-color:var(--success2);}
+.bbar-wrap{background:var(--bg3);height:5px;border-radius:2px;overflow:hidden;margin-top:6px;}
+.bbar{height:100%;border-radius:2px;transition:width .4s;}
+</style>
+</head>
+<body>
+<div id="cfg-banner">⚙ <strong>CONFIG REQUISE</strong> — Remplace SUPABASE_URL et SUPABASE_KEY dans le script, puis déploie sur Netlify.</div>
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-emblem">★</div>
+    <div class="login-title">L.S.P.D</div>
+    <div class="login-sub">Système Central — Accès Restreint</div>
+    <input type="password" id="pw-input" placeholder="CODE D'ACCÈS" onkeydown="if(event.key==='Enter')tryLogin()">
+    <button onclick="tryLogin()">CONNEXION</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+<div id="app">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="s-top"><div class="s-badge">★</div><div><div class="s-name">LSPD</div><div class="s-sub">Système Central</div></div></div>
+    <nav>
+      <div class="nav-section"><div class="nav-label">Général</div><div class="nav-item active" data-page="dashboard"><span class="nav-icon">◈</span>Tableau de bord</div></div>
+      <div class="nav-section">
+        <div class="nav-label">Criminalité</div>
+        <div class="nav-item" data-page="casiers"><span class="nav-icon">◉</span>Casiers judiciaires</div>
+        <div class="nav-item" data-page="ppa"><span class="nav-icon">◑</span>PPA</div>
+        <div class="nav-item" data-page="vehicules"><span class="nav-icon">◐</span>Véhicules</div>
+        <div class="nav-item" data-page="armes"><span class="nav-icon">◆</span>Armes saisies</div>
+        <div class="nav-item" data-page="recherche"><span class="nav-icon">◇</span>Avis de recherche</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Finances</div>
+        <div class="nav-item" data-page="amendes"><span class="nav-icon">◎</span>Amendes / PV</div>
+        <div class="nav-item" data-page="budget"><span class="nav-icon">▣</span>Budget</div>
+        <div class="nav-item" data-page="salaires"><span class="nav-icon">▤</span>Salaires</div>
+      </div>
+    </nav>
+    <div class="s-foot">RP Server · Usage interne<br><span style="color:var(--success2);">●</span> Supabase</div>
+  </aside>
+  <main class="main">
+    <div id="page-dashboard" class="page active"><div class="ph"><div><div class="ph-title">TABLEAU DE BORD</div><div class="ph-sub">Vue d'ensemble en temps réel</div></div></div><div class="stats" id="dash-stats"><div class="loading"><span class="spinner"></span>Chargement...</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="dash-panels"></div></div>
+    <div id="page-casiers" class="page">
+      <div id="casiers-list"><div class="ph"><div><div class="ph-title">CASIERS JUDICIAIRES</div><div class="ph-sub">Fichier central des individus</div></div><button class="btn btn-gold" onclick="openModal('casier')">+ Nouveau casier</button></div><div class="panel"><div class="panel-head"><span class="panel-title">Recherche individu</span><input class="search-input" placeholder="Nom, prénom, plaque..." oninput="searchCasiers(this.value)"></div><div id="casiers-grid" class="casier-grid"></div></div></div>
+      <div id="detail-view">
+        <div class="back-btn" onclick="closeDetail()">← Retour aux casiers</div>
+        <div class="detail-header"><div class="detail-avatar" id="d-avatar"></div><div style="flex:1;"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div class="detail-name" id="d-name"></div><span id="d-danger-badge"></span></div><div class="detail-grid" id="d-info"></div></div><div class="detail-actions"><button class="btn btn-gold btn-sm" onclick="openModal('ppa-direct')">+ PPA</button><button class="btn btn-blue btn-sm" onclick="openModal('delit-direct')">+ Délit</button><button class="btn btn-sm btn-outline" onclick="openModal('vehicule-direct')">+ Véhicule</button><button class="btn btn-del btn-sm" onclick="deleteCurrentCasier()">Supprimer</button></div></div>
+        <div class="panel"><div class="detail-tabs"><div class="dtab active" onclick="switchTab('delits-tab',this)">Délits</div><div class="dtab" onclick="switchTab('ppa-tab',this)">PPA</div><div class="dtab" onclick="switchTab('veh-tab',this)">Véhicules</div></div><div id="delits-tab" class="dtab-content active" style="min-height:80px;"></div><div id="ppa-tab" class="dtab-content" style="min-height:80px;"></div><div id="veh-tab" class="dtab-content" style="min-height:80px;"></div></div>
+      </div>
+    </div>
+    <div id="page-ppa" class="page"><div class="ph"><div><div class="ph-title">PPA</div><div class="ph-sub">Procès-verbaux d'arrestation</div></div><button class="btn btn-gold" onclick="openModal('ppa')">+ Nouveau PPA</button></div><div class="stats" id="ppa-stats"></div><div class="panel"><div class="panel-head"><span class="panel-title">Tous les PPA</span><select class="fi-sm" style="width:150px;" onchange="filterPPA(this.value)"><option value="">Tous statuts</option><option>Ouvert</option><option>Classé</option><option>Condamné</option><option>Acquitté</option></select></div><div id="ppa-wrap"></div></div></div>
+    <div id="page-vehicules" class="page"><div class="ph"><div><div class="ph-title">FICHIER VÉHICULES</div><div class="ph-sub">Immatriculations & propriétaires</div></div><button class="btn btn-gold" onclick="openModal('vehicule')">+ Enregistrer véhicule</button></div><div class="stats" id="veh-stats"></div><div class="panel"><div class="panel-head"><span class="panel-title">Véhicules enregistrés</span><input class="search-input" placeholder="Plaque, marque..." oninput="searchVehicules(this.value)"></div><div id="veh-wrap"></div></div></div>
+    <div id="page-armes" class="page"><div class="ph"><div><div class="ph-title">ARMES SAISIES</div><div class="ph-sub">Registre des armes confisquées</div></div><button class="btn btn-gold" onclick="openModal('arme')">+ Nouvelle saisie</button></div><div class="stats" id="armes-stats"></div><div class="panel"><div class="panel-head"><span class="panel-title">Armes en stock</span><select class="fi-sm" style="width:150px;" onchange="filterArmes(this.value)"><option value="">Tous types</option><option>Pistolet</option><option>Fusil</option><option>Couteau</option><option>Explosif</option><option>Autre</option></select></div><div id="armes-wrap"></div></div></div>
+    <div id="page-recherche" class="page"><div class="ph"><div><div class="ph-title">AVIS DE RECHERCHE</div><div class="ph-sub">Individus recherchés activement</div></div><button class="btn btn-red" onclick="openModal('recherche')">⚠ Émettre un avis</button></div><div class="stats" id="rech-stats"></div><div id="rech-grid" style="padding:4px;"></div></div>
+    <div id="page-amendes" class="page"><div class="ph"><div><div class="ph-title">AMENDES / PV</div><div class="ph-sub">Infractions routières et civiles</div></div><button class="btn btn-gold" onclick="openModal('amende')">+ Nouveau PV</button></div><div class="stats" id="am-stats"></div><div class="panel"><div class="panel-head"><span class="panel-title">Registre</span><select class="fi-sm" style="width:140px;" onchange="filterAmendes(this.value)"><option value="">Tous statuts</option><option>En attente</option><option>Payé</option><option>Contesté</option></select></div><div id="am-wrap"></div></div></div>
+    <div id="page-budget" class="page"><div class="ph"><div><div class="ph-title">BUDGET</div><div class="ph-sub">Finances du département</div></div><button class="btn btn-gold" onclick="openModal('budget')">+ Transaction</button></div><div class="stats" id="bud-stats"></div><div class="panel"><div class="panel-head"><span class="panel-title">Transactions</span></div><div id="bud-wrap"></div></div></div>
+    <div id="page-salaires" class="page"><div class="ph"><div><div class="ph-title">SALAIRES</div><div class="ph-sub">Grille salariale</div></div><button class="btn btn-gold" onclick="openModal('salaire')">+ Ajouter grade</button></div><div class="panel"><div class="panel-head"><span class="panel-title">Grille</span><span id="masse-lbl" class="mono" style="font-size:12px;color:var(--gold);"></span></div><div id="sal-wrap"></div></div></div>
+  </main>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay hidden" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-casier" style="display:none;"><div class="modal-head"><span class="modal-title">NOUVEAU CASIER</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fr"><div class="fg"><label class="fl">Prénom</label><input class="fi" id="c-prenom" placeholder="Prénom"></div><div class="fg"><label class="fl">Nom</label><input class="fi" id="c-nom" placeholder="NOM"></div></div><div class="fr"><div class="fg"><label class="fl">Date de naissance</label><input class="fi" id="c-nais" type="date"></div><div class="fg"><label class="fl">Nationalité</label><input class="fi" id="c-nat" placeholder="Américaine"></div></div><div class="fr"><div class="fg"><label class="fl">Plaque principale</label><input class="fi" id="c-plaque" placeholder="ABC 123"></div><div class="fg"><label class="fl">Niveau de danger</label><select class="fs" id="c-danger"><option>Aucun</option><option>Faible</option><option>Modéré</option><option>Élevé</option><option>Extrême</option></select></div></div><div class="fg"><label class="fl">Adresse connue</label><input class="fi" id="c-adresse" placeholder="Rue, quartier..."></div><div class="fg"><label class="fl">Signalement physique</label><input class="fi" id="c-signalement" placeholder="Taille, cheveux, tatouages..."></div><div class="fg"><label class="fl">Notes</label><textarea class="fi" id="c-notes" placeholder="Comportement, gang..."></textarea></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="saveCasier()">CRÉER LE CASIER</button></div></div>
+  <div class="modal" id="modal-ppa" style="display:none;"><div class="modal-head"><span class="modal-title">NOUVEAU PPA</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fg"><label class="fl">Individu arrêté</label><select class="fs" id="ppa-casier"></select></div><div class="fr"><div class="fg"><label class="fl">Date</label><input class="fi" id="ppa-date" type="date"></div><div class="fg"><label class="fl">Agent rédacteur</label><input class="fi" id="ppa-agent" placeholder="Grade Nom"></div></div><div class="fg"><label class="fl">Motif d'arrestation</label><input class="fi" id="ppa-motif" placeholder="Motif principal..."></div><div class="fr"><div class="fg"><label class="fl">Lieu</label><input class="fi" id="ppa-lieu" placeholder="Lieu d'arrestation"></div><div class="fg"><label class="fl">GAV (heures)</label><input class="fi" id="ppa-gav" type="number" placeholder="48"></div></div><div class="fr"><div class="fg"><label class="fl">Amende ($)</label><input class="fi" id="ppa-amende" type="number" placeholder="0"></div><div class="fg"><label class="fl">Peine prison (jours)</label><input class="fi" id="ppa-prison" type="number" placeholder="0"></div></div><div class="fg"><label class="fl">Infractions commises</label><textarea class="fi" id="ppa-infractions" placeholder="Liste des infractions..."></textarea></div><div class="fg"><label class="fl">Saisies (armes, objets...)</label><input class="fi" id="ppa-saisies" placeholder="Ex: Glock 17, 200g cocaïne..."></div><div class="fg"><label class="fl">Résumé des faits</label><textarea class="fi" id="ppa-resume" placeholder="Description de l'intervention..."></textarea></div><div class="fg"><label class="fl">Statut</label><select class="fs" id="ppa-statut"><option>Ouvert</option><option>Classé</option><option>Condamné</option><option>Acquitté</option></select></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="savePPA()">ENREGISTRER LE PPA</button></div></div>
+  <div class="modal" id="modal-ppa-direct" style="display:none;"><div class="modal-head"><span class="modal-title">NOUVEAU PPA</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fr"><div class="fg"><label class="fl">Date</label><input class="fi" id="ppd-date" type="date"></div><div class="fg"><label class="fl">Agent</label><input class="fi" id="ppd-agent" placeholder="Grade Nom"></div></div><div class="fg"><label class="fl">Motif</label><input class="fi" id="ppd-motif" placeholder="Motif d'arrestation"></div><div class="fr"><div class="fg"><label class="fl">Lieu</label><input class="fi" id="ppd-lieu" placeholder="Lieu"></div><div class="fg"><label class="fl">GAV (h)</label><input class="fi" id="ppd-gav" type="number" placeholder="48"></div></div><div class="fr"><div class="fg"><label class="fl">Amende ($)</label><input class="fi" id="ppd-amende" type="number" placeholder="0"></div><div class="fg"><label class="fl">Prison (jours)</label><input class="fi" id="ppd-prison" type="number" placeholder="0"></div></div><div class="fg"><label class="fl">Infractions</label><textarea class="fi" id="ppd-infractions" placeholder="Liste..."></textarea></div><div class="fg"><label class="fl">Saisies</label><input class="fi" id="ppd-saisies" placeholder="Armes, drogues..."></div><div class="fg"><label class="fl">Résumé</label><textarea class="fi" id="ppd-resume" placeholder="Description..."></textarea></div><div class="fg"><label class="fl">Statut</label><select class="fs" id="ppd-statut"><option>Ouvert</option><option>Classé</option><option>Condamné</option><option>Acquitté</option></select></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="savePPADirect()">ENREGISTRER</button></div></div>
+  <div class="modal" id="modal-delit-direct" style="display:none;"><div class="modal-head"><span class="modal-title">AJOUTER UN DÉLIT</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fr"><div class="fg"><label class="fl">Type</label><select class="fs" id="dd-type"><option>Vol simple</option><option>Vol avec violence</option><option>Agression</option><option>Trafic de stupéfiants</option><option>Port d'arme illégal</option><option>Braquage</option><option>Meurtre</option><option>Tentative de meurtre</option><option>Fuite policière</option><option>Autre</option></select></div><div class="fg"><label class="fl">Catégorie</label><select class="fs" id="dd-cat"><option>Mineur</option><option>Majeur</option><option>Crime</option></select></div></div><div class="fr"><div class="fg"><label class="fl">Date</label><input class="fi" id="dd-date" type="date"></div><div class="fg"><label class="fl">Agent</label><input class="fi" id="dd-agent" placeholder="Grade Nom"></div></div><div class="fr"><div class="fg"><label class="fl">Amende ($)</label><input class="fi" id="dd-amende" type="number" placeholder="0"></div><div class="fg"><label class="fl">Statut</label><select class="fs" id="dd-statut"><option>En cours</option><option>Classé</option><option>Condamné</option><option>Acquitté</option></select></div></div><div class="fg"><label class="fl">Description</label><textarea class="fi" id="dd-desc" placeholder="Détails..."></textarea></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="saveDelitDirect()">ENREGISTRER</button></div></div>
+  <div class="modal" id="modal-vehicule" style="display:none;"><div class="modal-head"><span class="modal-title">ENREGISTRER VÉHICULE</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fr"><div class="fg"><label class="fl">Plaque</label><input class="fi" id="v-plaque" placeholder="ABC 123"></div><div class="fg"><label class="fl">Propriétaire (casier)</label><select class="fs" id="v-casier"><option value="">— Aucun —</option></select></div></div><div class="fr3"><div class="fg"><label class="fl">Marque</label><input class="fi" id="v-marque" placeholder="BMW"></div><div class="fg"><label class="fl">Modèle</label><input class="fi" id="v-modele" placeholder="M3"></div><div class="fg"><label class="fl">Couleur</label><input class="fi" id="v-couleur" placeholder="Noir"></div></div><div class="fr"><div class="fg"><label class="fl">Année</label><input class="fi" id="v-annee" type="number" placeholder="2022"></div><div class="fg"><label class="fl">Statut</label><select class="fs" id="v-statut"><option>Normal</option><option>Volé</option><option>Saisi</option><option>Recherché</option></select></div></div><div class="fg"><label class="fl">Notes</label><textarea class="fi" id="v-notes" placeholder="Modifications, signes distinctifs..."></textarea></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="saveVehicule()">ENREGISTRER</button></div></div>
+  <div class="modal" id="modal-vehicule-direct" style="display:none;"><div class="modal-head"><span class="modal-title">AJOUTER VÉHICULE</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fr"><div class="fg"><label class="fl">Plaque</label><input class="fi" id="vd-plaque" placeholder="ABC 123"></div><div class="fg"><label class="fl">Statut</label><select class="fs" id="vd-statut"><option>Normal</option><option>Volé</option><option>Saisi</option><option>Recherché</option></select></div></div><div class="fr3"><div class="fg"><label class="fl">Marque</label><input class="fi" id="vd-marque" placeholder="BMW"></div><div class="fg"><label class="fl">Modèle</label><input class="fi" id="vd-modele" placeholder="M3"></div><div class="fg"><label class="fl">Couleur</label><input class="fi" id="vd-couleur" placeholder="Noir"></div></div><div class="fg"><label class="fl">Année</label><input class="fi" id="vd-annee" type="number" placeholder="2022"></div><div class="fg"><label class="fl">Notes</label><textarea class="fi" id="vd-notes" placeholder="Notes..."></textarea></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="saveVehiculeDirect()">ENREGISTRER</button></div></div>
+  <div class="modal" id="modal-arme" style="display:none;"><div class="modal-head"><span class="modal-title">SAISIE D'ARME</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fr"><div class="fg"><label class="fl">Désignation</label><input class="fi" id="ar-nom" placeholder="Glock 17, AK-47..."></div><div class="fg"><label class="fl">Type</label><select class="fs" id="ar-type"><option>Pistolet</option><option>Fusil</option><option>Couteau</option><option>Explosif</option><option>Autre</option></select></div></div><div class="fr"><div class="fg"><label class="fl">Numéro de série</label><input class="fi" id="ar-serie" placeholder="GK-29183"></div><div class="fg"><label class="fl">État</label><select class="fs" id="ar-etat"><option>Bon état</option><option>Endommagé</option><option>Hors service</option></select></div></div><div class="fg"><label class="fl">Individu concerné</label><select class="fs" id="ar-casier"><option value="">— Aucun —</option></select></div><div class="fr"><div class="fg"><label class="fl">Date de saisie</label><input class="fi" id="ar-date" type="date"></div><div class="fg"><label class="fl">Agent</label><input class="fi" id="ar-agent" placeholder="Grade Nom"></div></div><div class="fg"><label class="fl">Lieu</label><input class="fi" id="ar-lieu" placeholder="Adresse, quartier..."></div><div class="fg"><label class="fl">Notes</label><textarea class="fi" id="ar-notes" placeholder="Contexte..."></textarea></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="saveArme()">ENREGISTRER</button></div></div>
+  <div class="modal" id="modal-recherche" style="display:none;"><div class="modal-head"><span class="modal-title">AVIS DE RECHERCHE</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fg"><label class="fl">Individu (si fiché)</label><select class="fs" id="rech-casier"><option value="">— Saisir manuellement —</option></select></div><div class="fr"><div class="fg"><label class="fl">Nom (si non fiché)</label><input class="fi" id="rech-nom" placeholder="Nom Prénom"></div><div class="fg"><label class="fl">Dangerosité</label><select class="fs" id="rech-danger"><option>Faible</option><option>Modéré</option><option>Élevé</option><option>Extrême</option></select></div></div><div class="fg"><label class="fl">Motif de recherche</label><input class="fi" id="rech-motif" placeholder="Meurtre en fuite, braquage..."></div><div class="fg"><label class="fl">Signalement</label><input class="fi" id="rech-signalement" placeholder="Description physique, véhicule..."></div><div class="fr"><div class="fg"><label class="fl">Dernière localisation</label><input class="fi" id="rech-loc" placeholder="Quartier, zone..."></div><div class="fg"><label class="fl">Agent émetteur</label><input class="fi" id="rech-agent" placeholder="Grade Nom"></div></div><div class="fg"><label class="fl">Notes</label><textarea class="fi" id="rech-notes" placeholder="Infos supplémentaires..."></textarea></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-red" onclick="saveRecherche()">⚠ ÉMETTRE L'AVIS</button></div></div>
+  <div class="modal" id="modal-amende" style="display:none;"><div class="modal-head"><span class="modal-title">NOUVEAU PV</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fr"><div class="fg"><label class="fl">Nom contrevenant</label><input class="fi" id="am-nom" placeholder="Nom Prénom"></div><div class="fg"><label class="fl">Plaque / ID</label><input class="fi" id="am-plaque" placeholder="ABC 123"></div></div><div class="fg"><label class="fl">Infraction</label><input class="fi" id="am-infraction" placeholder="Ex: Excès de vitesse"></div><div class="fr"><div class="fg"><label class="fl">Montant ($)</label><input class="fi" id="am-montant" type="number" placeholder="0"></div><div class="fg"><label class="fl">Agent</label><input class="fi" id="am-agent" placeholder="Grade Nom"></div></div><div class="fr"><div class="fg"><label class="fl">Date</label><input class="fi" id="am-date" type="date"></div><div class="fg"><label class="fl">Statut</label><select class="fs" id="am-statut"><option>En attente</option><option>Payé</option><option>Contesté</option></select></div></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="saveAmende()">ÉMETTRE LE PV</button></div></div>
+  <div class="modal" id="modal-budget" style="display:none;"><div class="modal-head"><span class="modal-title">TRANSACTION</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fg"><label class="fl">Description</label><input class="fi" id="bu-desc" placeholder="Description..."></div><div class="fr"><div class="fg"><label class="fl">Catégorie</label><select class="fs" id="bu-cat"><option>Salaires</option><option>Équipements</option><option>Véhicules</option><option>Formation</option><option>Opérations</option><option>Amendes</option><option>Subvention</option><option>Autre</option></select></div><div class="fg"><label class="fl">Type</label><select class="fs" id="bu-type"><option>Dépense</option><option>Recette</option></select></div></div><div class="fr"><div class="fg"><label class="fl">Montant ($)</label><input class="fi" id="bu-montant" type="number" placeholder="0"></div><div class="fg"><label class="fl">Date</label><input class="fi" id="bu-date" type="date"></div></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="saveBudget()">VALIDER</button></div></div>
+  <div class="modal" id="modal-salaire" style="display:none;"><div class="modal-head"><span class="modal-title">NOUVEAU GRADE</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="fr"><div class="fg"><label class="fl">Nom du grade</label><input class="fi" id="sa-grade" placeholder="Ex: Officier"></div><div class="fg"><label class="fl">Niveau</label><select class="fs" id="sa-niveau"><option>Recrut</option><option>Officier</option><option>Sergent</option><option>Lieutenant</option><option>Capitaine</option><option>Commandant</option><option>Chef</option></select></div></div><div class="fr"><div class="fg"><label class="fl">Salaire / semaine ($)</label><input class="fi" id="sa-sal" type="number" placeholder="0"></div><div class="fg"><label class="fl">Effectifs</label><input class="fi" id="sa-eff" type="number" placeholder="0"></div></div></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">Annuler</button><button class="btn btn-gold" onclick="saveSalaire()">ENREGISTRER</button></div></div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ⚙️ CONFIG — MODIFIE CES 3 LIGNES AVANT DE DÉPLOYER
+const SUPABASE_URL = 'sb_publishable_FW-JV6nsHKWNbyLkwPASOg_nLp1BKCD';
+const SUPABASE_KEY = 'REMPLACE_PAR_TON_ANON_KEY';
+const PASSWORD     = 'LSPD2024';
+
+const isCfg = !SUPABASE_URL.includes('REMPLACE');
+if (isCfg) document.getElementById('cfg-banner').classList.add('hidden');
+
+async function sb(table,method='GET',body=null,query=''){
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`,{method,headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''},body:body?JSON.stringify(body):null});
+  if(!r.ok)throw new Error(await r.text());
+  if(method==='DELETE')return null;
+  try{return await r.json();}catch{return null;}
+}
+const getAll=(t,q='')=>sb(t,'GET',null,'?order=created_at.desc'+q);
+const ins=(t,d)=>sb(t,'POST',d);
+const del=(t,id)=>sb(t,'DELETE',null,'?id=eq.'+id);
+const v=id=>document.getElementById(id)?.value||'';
+const n=id=>Number(document.getElementById(id)?.value)||null;
+const fmt=n=>'$'+Number(n||0).toLocaleString('fr-FR');
+const today=()=>new Date().toISOString().split('T')[0];
+const ini=(nom,prenom)=>((prenom||'?')[0]+(nom||'?')[0]).toUpperCase();
+
+function dbadge(d){if(!d||d==='Aucun')return '';const m={Faible:'bg-green',Modéré:'bg-orange',Élevé:'bg-red',Extrême:'bg-red'};return `<span class="badge ${m[d]||'bg-gray'}">⚠ ${d}</span>`;}
+function sbadge(s){const m={Payé:'bg-green','En attente':'bg-gold',Contesté:'bg-red',Classé:'bg-gray',Condamné:'bg-red',Acquitté:'bg-green','En cours':'bg-orange',Ouvert:'bg-orange',Recette:'bg-green',Dépense:'bg-red',Normal:'bg-gray',Volé:'bg-red',Saisi:'bg-orange',Recherché:'bg-red','Bon état':'bg-green',Endommagé:'bg-orange','Hors service':'bg-red',Mineur:'bg-gold',Majeur:'bg-orange',Crime:'bg-red'};return `<span class="badge ${m[s]||'bg-gray'}">${s}</span>`;}
+function notify(msg,type='ok'){const n=document.getElementById('notif');n.textContent=msg;n.className='notif show '+type;setTimeout(()=>n.classList.remove('show'),3000);}
+
+function tryLogin(){
+  if(!isCfg){notify('Configure Supabase d\'abord !','err');return;}
+  if(v('pw-input')===PASSWORD){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';initNav();renderPage('dashboard');}
+  else{document.getElementById('login-error').textContent='Code incorrect';document.getElementById('pw-input').value='';}
+}
+
+function initNav(){
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      item.classList.add('active');
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      document.getElementById('page-'+item.dataset.page).classList.add('active');
+      renderPage(item.dataset.page);
+    });
+  });
+}
+
+async function renderPage(p){
+  const map={dashboard:renderDashboard,casiers:renderCasiers,ppa:renderPPA,vehicules:renderVehicules,armes:renderArmes,recherche:renderRecherche,amendes:renderAmendes,budget:renderBudget,salaires:renderSalaires};
+  if(map[p])await map[p]();
+}
+
+async function renderDashboard(){
+  document.getElementById('dash-stats').innerHTML='<div class="loading"><span class="spinner"></span>Chargement...</div>';
+  try{
+    const[casiers,ppa,vehicules,armes,recherche,amendes,budget]=await Promise.all([getAll('casiers'),getAll('ppa'),getAll('vehicules'),getAll('armes'),getAll('recherche'),getAll('amendes'),getAll('budget')]);
+    const rec=budget.filter(t=>t.type==='Recette').reduce((a,t)=>a+Number(t.montant||0),0);
+    const dep=budget.filter(t=>t.type==='Dépense').reduce((a,t)=>a+Number(t.montant||0),0);
+    document.getElementById('dash-stats').innerHTML=`
+      <div class="sc cr"><div class="sc-lbl">Individus fichés</div><div class="sc-val">${casiers.length}</div><div class="sc-note">${recherche.length} recherchés</div></div>
+      <div class="sc co"><div class="sc-lbl">PPA émis</div><div class="sc-val">${ppa.length}</div><div class="sc-note">${ppa.filter(p=>p.statut==='Ouvert').length} ouverts</div></div>
+      <div class="sc cb"><div class="sc-lbl">Véhicules</div><div class="sc-val">${vehicules.length}</div><div class="sc-note">${vehicules.filter(vv=>vv.statut==='Volé').length} volés</div></div>
+      <div class="sc cg"><div class="sc-lbl">Armes saisies</div><div class="sc-val">${armes.length}</div></div>
+      <div class="sc cv"><div class="sc-lbl">Solde budget</div><div class="sc-val">${fmt(rec-dep)}</div></div>
+    `;
+    document.getElementById('dash-panels').innerHTML=`
+      <div class="panel"><div class="panel-head"><span class="panel-title">Derniers casiers</span></div><table><tbody>${casiers.slice(0,5).map(c=>`<tr class="cr-row" onclick="openDetailById('${c.id}',true)"><td class="nm">${c.prenom||''} ${c.nom||''}</td><td>${dbadge(c.danger)||sbadge('Normal')}</td><td style="color:var(--text3);font-size:11px;" class="mono">${c.plaque||'—'}</td></tr>`).join('')}${!casiers.length?'<tr><td colspan="3" class="empty">Aucun casier</td></tr>':''}</tbody></table></div>
+      <div class="panel"><div class="panel-head"><span class="panel-title">Avis de recherche actifs</span></div><table><tbody>${recherche.slice(0,5).map(r=>`<tr><td class="nm">${r.nom||'—'}</td><td>${dbadge(r.danger)}</td><td style="color:var(--text3);font-size:11px;">${r.motif||'—'}</td></tr>`).join('')}${!recherche.length?'<tr><td colspan="3" class="empty">Aucun avis actif</td></tr>':''}</tbody></table></div>
+    `;
+  }catch(e){document.getElementById('dash-stats').innerHTML='<div class="empty">Erreur Supabase — vérifie ta config.</div>';}
+}
+
+let allCasiers=[];
+async function renderCasiers(){
+  document.getElementById('casiers-list').style.display='block';
+  document.getElementById('detail-view').style.display='none';
+  document.getElementById('casiers-grid').innerHTML='<div class="loading"><span class="spinner"></span>Chargement...</div>';
+  try{allCasiers=await getAll('casiers');renderCasiersGrid(allCasiers);}
+  catch(e){document.getElementById('casiers-grid').innerHTML='<div class="empty">Erreur.</div>';}
+}
+function renderCasiersGrid(list){
+  if(!list.length){document.getElementById('casiers-grid').innerHTML='<div class="empty">Aucun casier — crée le premier avec le bouton +</div>';return;}
+  document.getElementById('casiers-grid').innerHTML=list.map(c=>`<div class="c-card ${c.danger==='Élevé'||c.danger==='Extrême'?'danger-left':''}" onclick="openDetailById('${c.id}')"><div class="c-head"><div class="c-avatar">${ini(c.nom,c.prenom)}</div><div><div class="c-name">${c.prenom||''} ${c.nom||''}</div><div class="c-meta">${c.plaque||'Pas de plaque'} · ${c.nationalite||'—'}</div></div></div><div class="c-tags">${dbadge(c.danger)||''}${c.signalement?`<span class="badge bg-gray" style="font-size:10px;">${c.signalement.substring(0,28)}...</span>`:''}</div></div>`).join('');
+}
+function searchCasiers(q){if(!q){renderCasiersGrid(allCasiers);return;}const s=q.toLowerCase();renderCasiersGrid(allCasiers.filter(c=>(c.nom||'').toLowerCase().includes(s)||(c.prenom||'').toLowerCase().includes(s)||(c.plaque||'').toLowerCase().includes(s)));}
+
+let currentCasier=null;
+async function openDetailById(id,fromDash=false){
+  if(fromDash){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.querySelector('[data-page="casiers"]').classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-casiers').classList.add('active');if(!allCasiers.length)allCasiers=await getAll('casiers');}
+  currentCasier=allCasiers.find(c=>c.id==id);
+  if(!currentCasier)return;
+  document.getElementById('casiers-list').style.display='none';
+  document.getElementById('detail-view').style.display='block';
+  const c=currentCasier;
+  document.getElementById('d-avatar').textContent=ini(c.nom,c.prenom);
+  document.getElementById('d-name').textContent=`${c.prenom||''} ${c.nom||''}`;
+  document.getElementById('d-danger-badge').innerHTML=dbadge(c.danger)||'';
+  document.getElementById('d-info').innerHTML=`<div class="dg-row"><span class="dg-lbl">Naissance</span><span class="dg-val">${c.date_naissance||'—'}</span></div><div class="dg-row"><span class="dg-lbl">Nationalité</span><span class="dg-val">${c.nationalite||'—'}</span></div><div class="dg-row"><span class="dg-lbl">Plaque</span><span class="dg-val mono">${c.plaque||'—'}</span></div><div class="dg-row"><span class="dg-lbl">Adresse</span><span class="dg-val">${c.adresse||'—'}</span></div>${c.signalement?`<div class="dg-row" style="grid-column:1/-1;"><span class="dg-lbl">Signalement</span><span class="dg-val">${c.signalement}</span></div>`:''}${c.notes?`<div class="dg-row" style="grid-column:1/-1;"><span class="dg-lbl">Notes</span><span class="dg-val">${c.notes}</span></div>`:''}`;
+  await loadDetailTabs();
+}
+async function loadDetailTabs(){
+  const[delits,ppas,vehs]=await Promise.all([getAll('delits','&casier_id=eq.'+currentCasier.id),getAll('ppa','&casier_id=eq.'+currentCasier.id),getAll('vehicules','&casier_id=eq.'+currentCasier.id)]);
+  document.getElementById('delits-tab').innerHTML=delits.length?`<table><tbody>${delits.map(d=>`<tr><td>${d.date||'—'}</td><td class="nm">${d.type_delit}</td><td>${sbadge(d.categorie)}</td><td>${sbadge(d.statut)}</td><td><button class="btn btn-del" onclick="del('delits','${d.id}').then(loadDetailTabs)">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucun délit</div>';
+  document.getElementById('ppa-tab').innerHTML=ppas.length?`<table><tbody>${ppas.map(p=>`<tr><td>${p.date||'—'}</td><td class="nm">${p.motif||'—'}</td><td>${p.agent||'—'}</td><td>${sbadge(p.statut)}</td><td><button class="btn btn-del" onclick="del('ppa','${p.id}').then(loadDetailTabs)">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucun PPA</div>';
+  document.getElementById('veh-tab').innerHTML=vehs.length?`<table><tbody>${vehs.map(vv=>`<tr><td class="nm mono">${vv.plaque||'—'}</td><td>${vv.marque||''} ${vv.modele||''}</td><td>${vv.couleur||'—'}</td><td>${sbadge(vv.statut)}</td><td><button class="btn btn-del" onclick="del('vehicules','${vv.id}').then(loadDetailTabs)">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucun véhicule</div>';
+}
+function switchTab(id,el){document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.dtab-content').forEach(c=>{c.classList.remove('active');if(c.id===id)c.classList.add('active');});}
+function closeDetail(){document.getElementById('casiers-list').style.display='block';document.getElementById('detail-view').style.display='none';currentCasier=null;}
+async function deleteCurrentCasier(){if(!currentCasier||!confirm('Supprimer ce casier ?'))return;await del('casiers',currentCasier.id);notify('Supprimé','ok');closeDetail();renderCasiers();}
+
+let ppaFilter='';
+function filterPPA(vv){ppaFilter=vv;renderPPA();}
+async function renderPPA(){
+  const w=document.getElementById('ppa-wrap');
+  w.innerHTML='<div class="loading"><span class="spinner"></span>Chargement...</div>';
+  try{
+    const ppas=await getAll('ppa');
+    const f=ppaFilter?ppas.filter(p=>p.statut===ppaFilter):ppas;
+    document.getElementById('ppa-stats').innerHTML=`<div class="sc co"><div class="sc-lbl">Total</div><div class="sc-val">${ppas.length}</div></div><div class="sc cr"><div class="sc-lbl">Ouverts</div><div class="sc-val">${ppas.filter(p=>p.statut==='Ouvert').length}</div></div><div class="sc cv"><div class="sc-lbl">Condamnés</div><div class="sc-val">${ppas.filter(p=>p.statut==='Condamné').length}</div></div>`;
+    w.innerHTML=f.length?`<table><thead><tr><th>Date</th><th>Individu</th><th>Motif</th><th>Agent</th><th>GAV</th><th>Amende</th><th>Prison</th><th>Statut</th><th></th></tr></thead><tbody>${f.map(p=>`<tr><td>${p.date||'—'}</td><td class="nm">${p.casier_nom||'—'}</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.motif||'—'}</td><td style="color:var(--text2)">${p.agent||'—'}</td><td class="mono">${p.gav_heures||'—'}h</td><td class="mono" style="color:var(--gold)">${p.amende?fmt(p.amende):'—'}</td><td class="mono">${p.prison_jours?p.prison_jours+'j':'—'}</td><td>${sbadge(p.statut)}</td><td><button class="btn btn-del" onclick="del('ppa','${p.id}').then(renderPPA)">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucun PPA.</div>';
+  }catch(e){w.innerHTML='<div class="empty">Erreur.</div>';}
+}
+
+let allVehicules=[],vehSearch='';
+function searchVehicules(q){vehSearch=q;renderVehList();}
+async function renderVehicules(){try{allVehicules=await getAll('vehicules');renderVehList();}catch(e){document.getElementById('veh-wrap').innerHTML='<div class="empty">Erreur.</div>';}}
+function renderVehList(){
+  const list=vehSearch?allVehicules.filter(vv=>(vv.plaque||'').toLowerCase().includes(vehSearch.toLowerCase())||(vv.marque||'').toLowerCase().includes(vehSearch.toLowerCase())):allVehicules;
+  document.getElementById('veh-stats').innerHTML=`<div class="sc cb"><div class="sc-lbl">Total</div><div class="sc-val">${allVehicules.length}</div></div><div class="sc cr"><div class="sc-lbl">Volés</div><div class="sc-val">${allVehicules.filter(vv=>vv.statut==='Volé').length}</div></div><div class="sc co"><div class="sc-lbl">Saisis</div><div class="sc-val">${allVehicules.filter(vv=>vv.statut==='Saisi').length}</div></div>`;
+  document.getElementById('veh-wrap').innerHTML=list.length?`<table><thead><tr><th>Plaque</th><th>Marque / Modèle</th><th>Couleur</th><th>Année</th><th>Propriétaire</th><th>Statut</th><th></th></tr></thead><tbody>${list.map(vv=>`<tr><td class="nm mono">${vv.plaque||'—'}</td><td>${vv.marque||'—'} ${vv.modele||''}</td><td>${vv.couleur||'—'}</td><td class="mono">${vv.annee||'—'}</td><td style="color:var(--text2)">${vv.proprietaire_nom||'—'}</td><td>${sbadge(vv.statut)}</td><td><button class="btn btn-del" onclick="del('vehicules','${vv.id}').then(renderVehicules)">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucun véhicule.</div>';
+}
+
+let armeFilter='';
+function filterArmes(vv){armeFilter=vv;renderArmes();}
+async function renderArmes(){
+  const w=document.getElementById('armes-wrap');
+  w.innerHTML='<div class="loading"><span class="spinner"></span>Chargement...</div>';
+  try{
+    const armes=await getAll('armes');
+    const f=armeFilter?armes.filter(a=>a.type_arme===armeFilter):armes;
+    document.getElementById('armes-stats').innerHTML=`<div class="sc cr"><div class="sc-lbl">Total saisies</div><div class="sc-val">${armes.length}</div></div><div class="sc co"><div class="sc-lbl">Pistolets</div><div class="sc-val">${armes.filter(a=>a.type_arme==='Pistolet').length}</div></div><div class="sc cb"><div class="sc-lbl">Fusils</div><div class="sc-val">${armes.filter(a=>a.type_arme==='Fusil').length}</div></div>`;
+    w.innerHTML=f.length?`<table><thead><tr><th>Désignation</th><th>Type</th><th>N° Série</th><th>État</th><th>Individu</th><th>Agent</th><th>Date</th><th></th></tr></thead><tbody>${f.map(a=>`<tr><td class="nm">${a.nom||'—'}</td><td><span class="badge bg-purple">${a.type_arme||'—'}</span></td><td class="mono" style="font-size:11px;">${a.numero_serie||'—'}</td><td>${sbadge(a.etat)}</td><td style="color:var(--text2)">${a.casier_nom||'—'}</td><td style="color:var(--text3)">${a.agent||'—'}</td><td>${a.date||'—'}</td><td><button class="btn btn-del" onclick="del('armes','${a.id}').then(renderArmes)">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucune arme saisie.</div>';
+  }catch(e){w.innerHTML='<div class="empty">Erreur.</div>';}
+}
+
+async function renderRecherche(){
+  document.getElementById('rech-grid').innerHTML='<div class="loading"><span class="spinner"></span>Chargement...</div>';
+  try{
+    const list=await getAll('recherche');
+    document.getElementById('rech-stats').innerHTML=`<div class="sc cr"><div class="sc-lbl">Avis actifs</div><div class="sc-val">${list.length}</div></div>`;
+    document.getElementById('rech-grid').innerHTML=list.length?list.map(r=>`<div class="avis-card"><div class="avis-badge">${(r.nom||'?')[0].toUpperCase()}</div><div style="flex:1;"><div class="avis-name">${r.nom||'Inconnu'}</div><div class="avis-detail">${r.signalement||'—'}${r.derniere_localisation?'<br>📍 '+r.derniere_localisation:''}</div><div class="avis-reason">${r.motif||'—'}</div><div style="margin-top:8px;display:flex;gap:8px;align-items:center;">${dbadge(r.danger)}<span style="font-size:11px;color:var(--text3);">Agent: ${r.agent||'—'}</span></div></div><button class="btn btn-del" style="align-self:flex-start;" onclick="del('recherche','${r.id}').then(renderRecherche)">✕</button></div>`).join(''):'<div class="empty">Aucun avis de recherche actif.</div>';
+  }catch(e){document.getElementById('rech-grid').innerHTML='<div class="empty">Erreur.</div>';}
+}
+
+let amendeFilter='';
+function filterAmendes(vv){amendeFilter=vv;renderAmendes();}
+async function renderAmendes(){
+  const w=document.getElementById('am-wrap');
+  w.innerHTML='<div class="loading"><span class="spinner"></span>Chargement...</div>';
+  try{
+    const list=await getAll('amendes');
+    const f=amendeFilter?list.filter(a=>a.statut===amendeFilter):list;
+    const tot=list.reduce((a,x)=>a+Number(x.montant||0),0);
+    const pay=list.filter(a=>a.statut==='Payé').reduce((a,x)=>a+Number(x.montant||0),0);
+    document.getElementById('am-stats').innerHTML=`<div class="sc cg"><div class="sc-lbl">Total émis</div><div class="sc-val">${fmt(tot)}</div></div><div class="sc cv"><div class="sc-lbl">Collecté</div><div class="sc-val">${fmt(pay)}</div></div><div class="sc co"><div class="sc-lbl">En attente</div><div class="sc-val">${list.filter(a=>a.statut==='En attente').length}</div></div>`;
+    w.innerHTML=f.length?`<table><thead><tr><th>Date</th><th>Nom / Plaque</th><th>Infraction</th><th>Montant</th><th>Agent</th><th>Statut</th><th></th></tr></thead><tbody>${f.map(a=>`<tr><td>${a.date||'—'}</td><td class="nm">${a.nom||'—'}<br><span style="font-size:11px;color:var(--text3);">${a.plaque||''}</span></td><td>${a.infraction||'—'}</td><td class="mono" style="color:var(--gold)">${fmt(a.montant)}</td><td style="color:var(--text2)">${a.agent||'—'}</td><td>${sbadge(a.statut)}</td><td><button class="btn btn-del" onclick="del('amendes','${a.id}').then(renderAmendes)">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucun PV.</div>';
+  }catch(e){w.innerHTML='<div class="empty">Erreur.</div>';}
+}
+
+async function renderBudget(){
+  const w=document.getElementById('bud-wrap');
+  w.innerHTML='<div class="loading"><span class="spinner"></span>Chargement...</div>';
+  try{
+    const list=await getAll('budget');
+    const rec=list.filter(t=>t.type==='Recette').reduce((a,t)=>a+Number(t.montant||0),0);
+    const dep=list.filter(t=>t.type==='Dépense').reduce((a,t)=>a+Number(t.montant||0),0);
+    const pct=rec>0?Math.min(100,Math.round(dep/rec*100)):0;
+    document.getElementById('bud-stats').innerHTML=`<div class="sc cv"><div class="sc-lbl">Recettes</div><div class="sc-val">${fmt(rec)}</div></div><div class="sc cr"><div class="sc-lbl">Dépenses</div><div class="sc-val">${fmt(dep)}</div></div><div class="sc cb"><div class="sc-lbl">Solde</div><div class="sc-val" style="color:${rec>=dep?'var(--success2)':'var(--danger2)'};">${fmt(Math.abs(rec-dep))}</div><div class="bbar-wrap"><div class="bbar" style="width:${pct}%;background:${pct>80?'var(--danger2)':pct>50?'var(--warn2)':'var(--success2)'};"></div></div><div class="sc-note">${pct}% dépensé</div></div>`;
+    w.innerHTML=list.length?`<table><thead><tr><th>Date</th><th>Description</th><th>Catégorie</th><th>Type</th><th>Montant</th></tr></thead><tbody>${list.map(t=>`<tr><td>${t.date||'—'}</td><td class="nm">${t.description||'—'}</td><td><span class="badge bg-gray">${t.categorie||'—'}</span></td><td>${sbadge(t.type)}</td><td class="mono" style="color:${t.type==='Recette'?'var(--success2)':'var(--danger2)'};">${t.type==='Recette'?'+':'-'}${fmt(t.montant)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucune transaction.</div>';
+  }catch(e){w.innerHTML='<div class="empty">Erreur.</div>';}
+}
+
+async function renderSalaires(){
+  const w=document.getElementById('sal-wrap');
+  w.innerHTML='<div class="loading"><span class="spinner"></span>Chargement...</div>';
+  try{
+    const list=await getAll('salaires');
+    const masse=list.reduce((a,s)=>a+Number(s.salaire||0)*Number(s.effectifs||0),0);
+    document.getElementById('masse-lbl').textContent='Masse: '+fmt(masse)+'/sem.';
+    w.innerHTML=list.length?`<table><thead><tr><th>Grade</th><th>Niveau</th><th>Salaire/sem.</th><th>Effectifs</th><th>Masse</th><th></th></tr></thead><tbody>${list.map(s=>`<tr><td class="nm">${s.grade}</td><td><span class="badge bg-blue">${s.niveau}</span></td><td class="mono" style="color:var(--gold)">${fmt(s.salaire)}</td><td>${s.effectifs}</td><td class="mono">${fmt(Number(s.salaire)*Number(s.effectifs))}</td><td><button class="btn btn-del" onclick="del('salaires','${s.id}').then(renderSalaires)">Supprimer</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Aucun grade.</div>';
+  }catch(e){w.innerHTML='<div class="empty">Erreur.</div>';}
+}
+
+async function saveCasier(){const nom=v('c-nom').trim();if(!nom)return notify('Nom requis','err');try{await ins('casiers',{nom,prenom:v('c-prenom'),date_naissance:v('c-nais'),nationalite:v('c-nat'),plaque:v('c-plaque'),danger:v('c-danger'),adresse:v('c-adresse'),signalement:v('c-signalement'),notes:v('c-notes')});notify('Casier créé','ok');closeModal();renderCasiers();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function savePPA(){const casier_id=v('ppa-casier');if(!casier_id)return notify('Sélectionne un individu','err');const casier=allCasiers.find(c=>c.id==casier_id);try{await ins('ppa',{casier_id,casier_nom:casier?`${casier.prenom} ${casier.nom}`:'—',date:v('ppa-date')||today(),agent:v('ppa-agent'),motif:v('ppa-motif'),lieu:v('ppa-lieu'),gav_heures:n('ppa-gav'),amende:n('ppa-amende'),prison_jours:n('ppa-prison'),infractions:v('ppa-infractions'),saisies:v('ppa-saisies'),resume:v('ppa-resume'),statut:v('ppa-statut')});notify('PPA enregistré','ok');closeModal();renderPPA();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function savePPADirect(){if(!currentCasier)return;try{await ins('ppa',{casier_id:currentCasier.id,casier_nom:`${currentCasier.prenom} ${currentCasier.nom}`,date:v('ppd-date')||today(),agent:v('ppd-agent'),motif:v('ppd-motif'),lieu:v('ppd-lieu'),gav_heures:n('ppd-gav'),amende:n('ppd-amende'),prison_jours:n('ppd-prison'),infractions:v('ppd-infractions'),saisies:v('ppd-saisies'),resume:v('ppd-resume'),statut:v('ppd-statut')});notify('PPA ajouté','ok');closeModal();loadDetailTabs();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function saveDelitDirect(){if(!currentCasier)return;try{await ins('delits',{casier_id:currentCasier.id,casier_nom:`${currentCasier.prenom} ${currentCasier.nom}`,type_delit:v('dd-type'),categorie:v('dd-cat'),date:v('dd-date')||today(),agent:v('dd-agent'),amende:n('dd-amende'),statut:v('dd-statut'),description:v('dd-desc')});notify('Délit ajouté','ok');closeModal();loadDetailTabs();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function saveVehicule(){const plaque=v('v-plaque').trim();if(!plaque)return notify('Plaque requise','err');const casier_id=v('v-casier')||null;const casier=casier_id?allCasiers.find(c=>c.id==casier_id):null;try{await ins('vehicules',{plaque,casier_id,proprietaire_nom:casier?`${casier.prenom} ${casier.nom}`:'—',marque:v('v-marque'),modele:v('v-modele'),couleur:v('v-couleur'),annee:n('v-annee'),statut:v('v-statut'),notes:v('v-notes')});notify('Véhicule enregistré','ok');closeModal();renderVehicules();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function saveVehiculeDirect(){const plaque=v('vd-plaque').trim();if(!plaque||!currentCasier)return notify('Plaque requise','err');try{await ins('vehicules',{plaque,casier_id:currentCasier.id,proprietaire_nom:`${currentCasier.prenom} ${currentCasier.nom}`,marque:v('vd-marque'),modele:v('vd-modele'),couleur:v('vd-couleur'),annee:n('vd-annee'),statut:v('vd-statut'),notes:v('vd-notes')});notify('Véhicule ajouté','ok');closeModal();loadDetailTabs();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function saveArme(){const nom=v('ar-nom').trim();if(!nom)return notify('Désignation requise','err');const casier_id=v('ar-casier')||null;const casier=casier_id?allCasiers.find(c=>c.id==casier_id):null;try{await ins('armes',{nom,type_arme:v('ar-type'),numero_serie:v('ar-serie'),etat:v('ar-etat'),casier_id,casier_nom:casier?`${casier.prenom} ${casier.nom}`:'—',date:v('ar-date')||today(),agent:v('ar-agent'),lieu:v('ar-lieu'),notes:v('ar-notes')});notify('Arme enregistrée','ok');closeModal();renderArmes();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function saveRecherche(){const casier_id=v('rech-casier')||null;const casier=casier_id?allCasiers.find(c=>c.id==casier_id):null;const nom=casier?`${casier.prenom} ${casier.nom}`:v('rech-nom').trim();if(!nom)return notify('Nom requis','err');try{await ins('recherche',{casier_id,nom,danger:v('rech-danger'),motif:v('rech-motif'),signalement:v('rech-signalement'),derniere_localisation:v('rech-loc'),agent:v('rech-agent'),notes:v('rech-notes')});notify('Avis émis','ok');closeModal();renderRecherche();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function saveAmende(){if(!v('am-nom').trim())return notify('Nom requis','err');try{await ins('amendes',{nom:v('am-nom'),plaque:v('am-plaque'),infraction:v('am-infraction'),montant:n('am-montant'),agent:v('am-agent'),date:v('am-date')||today(),statut:v('am-statut')});notify('PV émis','ok');closeModal();renderAmendes();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function saveBudget(){if(!v('bu-desc').trim())return notify('Description requise','err');try{await ins('budget',{description:v('bu-desc'),categorie:v('bu-cat'),type:v('bu-type'),montant:n('bu-montant'),date:v('bu-date')||today()});notify('Transaction enregistrée','ok');closeModal();renderBudget();}catch(e){notify('Erreur: '+e.message,'err');}}
+async function saveSalaire(){if(!v('sa-grade').trim())return notify('Grade requis','err');try{await ins('salaires',{grade:v('sa-grade'),niveau:v('sa-niveau'),salaire:n('sa-sal'),effectifs:n('sa-eff')});notify('Grade ajouté','ok');closeModal();renderSalaires();}catch(e){notify('Erreur: '+e.message,'err');}}
+
+async function openModal(type){
+  document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  const m=document.getElementById('modal-'+type);
+  if(!m)return;m.style.display='block';
+  const selMap={'ppa':'ppa-casier','vehicule':'v-casier','arme':'ar-casier','recherche':'rech-casier'};
+  if(selMap[type]){if(!allCasiers.length)allCasiers=await getAll('casiers');const sel=document.getElementById(selMap[type]);if(sel){const extra=type==='vehicule'||type==='recherche'?'<option value="">— Aucun —</option>':'';sel.innerHTML=extra+allCasiers.map(c=>`<option value="${c.id}">${c.prenom||''} ${c.nom||''}</option>`).join('');}}
+  ['ppa-date','ppd-date','ar-date','am-date','bu-date','dd-date'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=today();});
+}
+function closeModal(){document.getElementById('modal-overlay').classList.add('hidden');document.querySelectorAll('.modal').forEach(m=>m.style.display='none');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
